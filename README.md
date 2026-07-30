@@ -4,6 +4,14 @@ Customizable Laravel design system extracted from BOA PDF: brand mark, semantic 
 
 **Repository:** [github.com/p3iyaji/boa-theme](https://github.com/p3iyaji/boa-theme)
 
+## Requirements
+
+- PHP 8.2+
+- Laravel 11, 12, or 13
+- Tailwind CSS v4 in the host application
+
+Current package version: **0.1.1** (adds Laravel 13 illuminate component support).
+
 ## Install
 
 ```bash
@@ -25,6 +33,31 @@ If Composer cannot find the package yet (not on Packagist), add a VCS repository
   }
 }
 ```
+
+### Local development (path repo)
+
+While developing the theme, symlink it from a Herd/Laravel app instead of installing from GitHub:
+
+```json
+{
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../boa-theme",
+      "options": { "symlink": true }
+    }
+  ],
+  "require": {
+    "boa/theme": "@dev"
+  }
+}
+```
+
+```bash
+composer update boa/theme
+```
+
+Edits in the theme repo appear immediately in the host app via the symlink.
 
 ## Quick start
 
@@ -94,6 +127,27 @@ After importing `theme.css`, use:
 | radius | `rounded-boa-lg` |
 
 Prefer semantic tokens over raw `teal-*` / `amber-*` so rebranding stays a config change.
+
+## Package layout
+
+Edit in this repository — not under `vendor/`:
+
+| What | Where |
+|------|--------|
+| Colors / fonts / presets | `config/boa-theme.php`, `src/Support/Presets.php` |
+| Palette logic | `src/Theme.php`, `src/Support/Color.php` |
+| Tailwind bridge | `resources/css/theme.css` |
+| Brand mark / lockup | `resources/views/components/*.blade.php` |
+| Styles component | `src/View/Components/Styles.php` |
+
+After config/PHP changes in the host app:
+
+```bash
+php artisan config:clear
+php artisan view:clear
+```
+
+CSS changes need a Vite rebuild in the host app (`npm run dev` / `npm run build`).
 
 ## Accessibility
 
