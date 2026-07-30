@@ -2,21 +2,26 @@
 
 Customizable Laravel design system extracted from BOA PDF: brand mark, semantic color tokens, typography, and Tailwind CSS v4 utilities.
 
+**Repository:** [github.com/p3iyaji/boa-theme](https://github.com/p3iyaji/boa-theme)
+
 ## Install
 
 ```bash
 composer require boa/theme
 ```
 
-Path repository (local monorepo):
+If Composer cannot find the package yet (not on Packagist), add a VCS repository:
 
 ```json
 {
   "repositories": [
-    { "type": "path", "url": "packages/boa-theme", "options": { "symlink": true } }
+    {
+      "type": "vcs",
+      "url": "https://github.com/p3iyaji/boa-theme.git"
+    }
   ],
   "require": {
-    "boa/theme": "*"
+    "boa/theme": "^0.1"
   }
 }
 ```
@@ -95,8 +100,12 @@ Prefer semantic tokens over raw `teal-*` / `amber-*` so rebranding stays a confi
 ```php
 use Boa\Theme\Facades\BoaTheme;
 
-BoaTheme::accessibilityReport(); // WCAG AA/AAA checks for key pairs
+BoaTheme::accessibilityReport();
 BoaTheme::contrast('brand', 50, 'brand', 950);
+```
+
+```bash
+php artisan boa-theme:inspect
 ```
 
 ## PHP API
