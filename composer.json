@@ -1,0 +1,45 @@
+{
+    "name": "boa/theme",
+    "description": "Customizable BOA design system for Laravel \u2014 brand mark, semantic color tokens, typography, and Tailwind CSS v4 theme.",
+    "type": "library",
+    "license": "MIT",
+    "version": "0.1.0",
+    "keywords": [
+        "laravel",
+        "theme",
+        "design-system",
+        "tailwind",
+        "boa"
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/view": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0|^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Boa\\Theme\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Boa\\Theme\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Boa\\Theme\\BoaThemeServiceProvider"
+            ],
+            "aliases": {
+                "BoaTheme": "Boa\\Theme\\Facades\\BoaTheme"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

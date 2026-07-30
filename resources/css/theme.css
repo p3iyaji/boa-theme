@@ -1,0 +1,87 @@
+/*
+ |--------------------------------------------------------------------------
+ | BOA Theme — Tailwind CSS v4 token bridge
+ |--------------------------------------------------------------------------
+ |
+ | Import after `@import "tailwindcss"` in your app CSS:
+ |
+ |   @import '../../vendor/boa/theme/resources/css/theme.css';
+ |
+ | Or publish: `php artisan vendor:publish --tag=boa-theme-css`
+ |
+ | Runtime CSS variables are injected by <x-boa-theme::styles />.
+ |
+ */
+
+@theme {
+    --font-sans: var(--boa-font-sans);
+    --font-display: var(--boa-font-display);
+
+    --radius-boa-sm: var(--boa-radius-sm);
+    --radius-boa-md: var(--boa-radius-md);
+    --radius-boa-lg: var(--boa-radius-lg);
+    --radius-boa-xl: var(--boa-radius-xl);
+
+    --color-brand-50: var(--boa-brand-50);
+    --color-brand-100: var(--boa-brand-100);
+    --color-brand-200: var(--boa-brand-200);
+    --color-brand-300: var(--boa-brand-300);
+    --color-brand-400: var(--boa-brand-400);
+    --color-brand-500: var(--boa-brand-500);
+    --color-brand-600: var(--boa-brand-600);
+    --color-brand-700: var(--boa-brand-700);
+    --color-brand-800: var(--boa-brand-800);
+    --color-brand-900: var(--boa-brand-900);
+    --color-brand-950: var(--boa-brand-950);
+    --color-brand: var(--boa-brand);
+
+    --color-accent-50: var(--boa-accent-50);
+    --color-accent-100: var(--boa-accent-100);
+    --color-accent-200: var(--boa-accent-200);
+    --color-accent-300: var(--boa-accent-300);
+    --color-accent-400: var(--boa-accent-400);
+    --color-accent-500: var(--boa-accent-500);
+    --color-accent-600: var(--boa-accent-600);
+    --color-accent-700: var(--boa-accent-700);
+    --color-accent-800: var(--boa-accent-800);
+    --color-accent-900: var(--boa-accent-900);
+    --color-accent-950: var(--boa-accent-950);
+    --color-accent: var(--boa-accent);
+
+    --color-canvas-50: var(--boa-canvas-50);
+    --color-canvas-100: var(--boa-canvas-100);
+    --color-canvas-200: var(--boa-canvas-200);
+    --color-canvas-300: var(--boa-canvas-300);
+    --color-canvas-400: var(--boa-canvas-400);
+    --color-canvas-500: var(--boa-canvas-500);
+    --color-canvas-600: var(--boa-canvas-600);
+    --color-canvas-700: var(--boa-canvas-700);
+    --color-canvas-800: var(--boa-canvas-800);
+    --color-canvas-900: var(--boa-canvas-900);
+    --color-canvas-950: var(--boa-canvas-950);
+    --color-canvas: var(--boa-canvas);
+
+    --color-danger-50: var(--boa-danger-50);
+    --color-danger-100: var(--boa-danger-100);
+    --color-danger-200: var(--boa-danger-200);
+    --color-danger-300: var(--boa-danger-300);
+    --color-danger-400: var(--boa-danger-400);
+    --color-danger-500: var(--boa-danger-500);
+    --color-danger-600: var(--boa-danger-600);
+    --color-danger-700: var(--boa-danger-700);
+    --color-danger-800: var(--boa-danger-800);
+    --color-danger-900: var(--boa-danger-900);
+    --color-danger-950: var(--boa-danger-950);
+
+    --color-success-50: var(--boa-success-50);
+    --color-success-100: var(--boa-success-100);
+    --color-success-200: var(--boa-success-200);
+    --color-success-300: var(--boa-success-300);
+    --color-success-400: var(--boa-success-400);
+    --color-success-500: var(--boa-success-500);
+    --color-success-600: var(--boa-success-600);
+    --color-success-700: var(--boa-success-700);
+    --color-success-800: var(--boa-success-800);
+    --color-success-900: var(--boa-success-900);
+    --color-success-950: var(--boa-success-950);
+}
