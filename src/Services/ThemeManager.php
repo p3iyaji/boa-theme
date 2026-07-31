@@ -335,7 +335,17 @@ final class ThemeManager
 
     public function featureEnabled(string $feature): bool
     {
-        return (bool) $this->config->get("boa-theme.settings.features.{$feature}", false);
+        $defaultsOn = [
+            'live_preview',
+            'import_export',
+            'uploads',
+            'apply_document_styles',
+            'drawer',
+        ];
+
+        $default = in_array($feature, $defaultsOn, true);
+
+        return (bool) $this->config->get("boa-theme.settings.features.{$feature}", $default);
     }
 
     public function customCodeEnabled(): bool

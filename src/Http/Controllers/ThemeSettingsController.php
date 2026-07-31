@@ -10,6 +10,7 @@ use Boa\Theme\Services\ThemeAuthorizer;
 use Boa\Theme\Services\ThemeManager;
 use Boa\Theme\Support\Presets;
 use Boa\Theme\Theme;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -40,14 +41,14 @@ final class ThemeSettingsController extends Controller
             'logoDarkUrl' => $this->manager->assetUrl($settings['brand.logo_dark'] ?? null),
             'faviconUrl' => $this->manager->assetUrl($settings['brand.favicon'] ?? null),
             'routePrefix' => config('boa-theme.settings.route.name', 'boa-theme.settings.'),
+            'standalone' => true,
         ]);
     }
 
-    public function update(UpdateThemeSettingsRequest $request): RedirectResponse
+    public function update(UpdateThemeSettingsRequest $request): JsonResponse|RedirectResponse
     {
         $payload = $request->settingsPayload();
 
-        // Coerce line_height to string for storage consistency.
         if (isset($payload['typography.line_height'])) {
             $payload['typography.line_height'] = (string) $payload['typography.line_height'];
         }
@@ -66,28 +67,28 @@ final class ThemeSettingsController extends Controller
             }
         }
 
-        return redirect()
-            ->route(config('boa-theme.settings.route.name').'index')
-            ->with('boa-theme.status', 'Theme settings saved.');
+        return $this->respond($request, 'Theme settings saved.');
     }
 
-    public function reset(Request $request): RedirectResponse
+    public function reset(Request $request): JsonResponse|RedirectResponse
     {
         $group = $request->string('group')->toString();
 
         if ($group !== '' && ! in_array($group, ['general', 'brand', 'typography', 'components', 'custom'], true)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unknown settings group.', 'errors' => ['group' => ['Unknown settings group.']]], 422);
+            }
+
             return back()->withErrors(['group' => 'Unknown settings group.']);
         }
 
         $this->manager->reset($group !== '' ? $group : null);
 
         $message = $group !== ''
-            ? 'The '.ucfirst($group).' section was reset to defaults.'
+            ? 'The '.ucfirst($group).' section was reset to package defaults.'
             : 'All theme settings were reset to package defaults.';
 
-        return redirect()
-            ->route(config('boa-theme.settings.route.name').'index')
-            ->with('boa-theme.status', $message);
+        return $this->respond($request, $message);
     }
 
     public function export(): StreamedResponse|Response
@@ -107,23 +108,41 @@ final class ThemeSettingsController extends Controller
         );
     }
 
-    public function import(ImportThemeSettingsRequest $request): RedirectResponse
+    public function import(ImportThemeSettingsRequest $request): JsonResponse|RedirectResponse
     {
         $this->manager->import($request->payload());
 
-        return redirect()
-            ->route(config('boa-theme.settings.route.name').'index')
-            ->with('boa-theme.status', 'Theme settings imported.');
+        return $this->respond($request, 'Theme settings imported.');
     }
 
     public function previewCss(): Response
     {
-        /** @var Theme $theme */
-        $theme = app(Theme::class);
+        $theme = $this->manager->makeTheme();
+        $apply = $this->manager->featureEnabled('apply_document_styles');
 
-        return response($theme->cssVariables(), 200, [
+        return response($theme->cssPayload($apply), 200, [
             'Content-Type' => 'text/css; charset=UTF-8',
             'Cache-Control' => 'no-store',
         ]);
+    }
+
+    private function respond(Request $request, string $message): JsonResponse|RedirectResponse
+    {
+        $theme = $this->manager->makeTheme();
+        app()->instance(Theme::class, $theme);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'message' => $message,
+                'name' => $theme->name(),
+                'color_mode' => $theme->colorMode(),
+                'css_variables' => $theme->cssVariables(),
+                'css_bridge' => $theme->cssBridge($this->manager->featureEnabled('apply_document_styles')),
+            ]);
+        }
+
+        return redirect()
+            ->route(config('boa-theme.settings.route.name').'index')
+            ->with('boa-theme.status', $message);
     }
 }

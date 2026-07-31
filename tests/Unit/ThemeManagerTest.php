@@ -73,6 +73,14 @@ it('generates safe css variables', function (): void {
         ->and($css)->not->toContain('<script');
 });
 
+it('emits a runtime css bridge with brand utilities', function (): void {
+    $theme = new Theme(['preset' => 'solar-stele']);
+
+    expect($theme->cssBridge())->toContain('.bg-brand-600')
+        ->and($theme->cssBridge())->toContain('background-color: var(--boa-canvas-50)')
+        ->and($theme->cssPayload())->toContain('--boa-font-sans:');
+});
+
 it('sanitizes unsafe css values', function (): void {
     expect(ThemeCssVariables::sanitizeValue('expression(alert(1))'))->toBeNull()
         ->and(ThemeCssVariables::sanitizeValue('#ff0000'))->toBe('#ff0000')

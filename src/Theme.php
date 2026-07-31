@@ -7,6 +7,7 @@ namespace Boa\Theme;
 use Boa\Theme\Support\Color;
 use Boa\Theme\Support\PaletteGenerator;
 use Boa\Theme\Support\Presets;
+use Boa\Theme\Support\ThemeCssBridge;
 use Boa\Theme\Support\ThemeCssVariables;
 use Illuminate\Support\Arr;
 
@@ -292,6 +293,22 @@ final class Theme
         }
 
         return $block;
+    }
+
+    /**
+     * Runtime CSS bridge so token utilities work without a Tailwind rebuild.
+     */
+    public function cssBridge(bool $applyDocument = true): string
+    {
+        return ThemeCssBridge::stylesheet($applyDocument);
+    }
+
+    /**
+     * Full CSS payload (variables + bridge) for live refresh after saving.
+     */
+    public function cssPayload(bool $applyDocument = true): string
+    {
+        return $this->cssVariables()."\n\n".$this->cssBridge($applyDocument);
     }
 
     public function googleFontsUrl(): ?string

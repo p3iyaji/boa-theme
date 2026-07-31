@@ -35,9 +35,12 @@ class SettingsLink extends Component
 
     public function render(): View|Closure|string
     {
+        $drawer = app(ThemeManager::class)->featureEnabled('drawer');
+
         return view('boa-theme::components.settings-link', [
             'href' => route(config('boa-theme.settings.route.name', 'boa-theme.settings.').'index'),
             'label' => $this->label,
+            'drawer' => $drawer,
         ]);
     }
 }

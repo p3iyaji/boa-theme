@@ -3,7 +3,7 @@
     "description": "Customizable BOA design system for Laravel — brand mark, semantic color tokens, typography, Tailwind CSS v4 theme, and admin settings panel.",
     "type": "library",
     "license": "MIT",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "keywords": [
         "laravel",
         "theme",

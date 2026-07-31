@@ -184,6 +184,10 @@ return [
             'custom_head' => false,
             'import_export' => true,
             'uploads' => true,
+            // Apply fonts/background/link colours to the document + emit utility classes.
+            'apply_document_styles' => true,
+            // Right-side drawer panel (recommended). Set false for full-page only.
+            'drawer' => true,
         ],
 
         /*

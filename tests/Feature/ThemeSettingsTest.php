@@ -25,7 +25,36 @@ it('allows authorised users to open the settings panel', function (): void {
         ->get('/admin/theme')
         ->assertOk()
         ->assertSee('Theme Settings')
-        ->assertSee('Live preview');
+        ->assertSee('data-boa-drawer', false);
+});
+
+it('returns json payload when saving via ajax so the live page can refresh tokens', function (): void {
+    $this->actingAs($this->makeAdmin())
+        ->putJson('/admin/theme', [
+            'brand' => [
+                'name' => 'Ajax Brand',
+                'colors' => ['brand' => '#0f766e', 'accent' => '#ea580c'],
+            ],
+            'general' => [
+                'color_mode' => 'light',
+                'preset' => 'ember',
+                'rounded' => true,
+                'shadows' => true,
+                'animations' => true,
+            ],
+            'typography' => [
+                'sans' => 'Source Sans 3',
+                'display' => 'Cinzel',
+                'base_size' => '16px',
+                'heading_weight' => '700',
+                'body_weight' => '400',
+                'line_height' => '1.5',
+                'letter_spacing' => '0',
+            ],
+        ])
+        ->assertOk()
+        ->assertJsonPath('name', 'Ajax Brand')
+        ->assertJsonStructure(['message', 'css_variables', 'css_bridge', 'color_mode']);
 });
 
 it('updates settings for authorised users', function (): void {

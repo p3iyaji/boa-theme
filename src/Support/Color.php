@@ -69,7 +69,7 @@ final class Color
 
     public static function fromHsl(float $h, float $s, float $l): self
     {
-        $h = fmod(($h % 360) + 360, 360) / 360;
+        $h = fmod(fmod($h, 360.0) + 360.0, 360.0) / 360.0;
         $s = max(0.0, min(1.0, $s));
         $l = max(0.0, min(1.0, $l));
 
