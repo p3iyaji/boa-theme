@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Boa\Theme\View\Components;
 
+use Boa\Theme\Services\ThemeManager;
 use Boa\Theme\Theme;
 use Closure;
 use Illuminate\Contracts\View\View;
@@ -23,10 +24,14 @@ class Brand extends Component
     {
         /** @var Theme $theme */
         $theme = app(Theme::class);
+        $manager = app(ThemeManager::class);
+        $assets = $theme->assets();
 
         return view('boa-theme::components.brand', [
             'brandName' => $this->name ?? $theme->name(),
             'brandTagline' => $this->tagline ?? $theme->tagline(),
+            'logoUrl' => $manager->assetUrl($assets['logo']),
+            'logoDarkUrl' => $manager->assetUrl($assets['logo_dark']),
         ]);
     }
 }

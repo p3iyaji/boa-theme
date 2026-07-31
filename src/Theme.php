@@ -7,6 +7,7 @@ namespace Boa\Theme;
 use Boa\Theme\Support\Color;
 use Boa\Theme\Support\PaletteGenerator;
 use Boa\Theme\Support\Presets;
+use Boa\Theme\Support\ThemeCssVariables;
 use Illuminate\Support\Arr;
 
 final class Theme
@@ -15,6 +16,8 @@ final class Theme
      * @var array<string, array<int, string>>
      */
     private array $palettes = [];
+
+    private ?string $linkColor = null;
 
     /**
      * @param  array<string, mixed>  $config
@@ -45,11 +48,18 @@ final class Theme
 
     public function darkMode(): bool
     {
-        return (bool) ($this->config['dark_mode'] ?? false);
+        return $this->colorMode() === 'dark' || (bool) ($this->config['dark_mode'] ?? false);
+    }
+
+    public function colorMode(): string
+    {
+        $mode = (string) ($this->config['color_mode'] ?? 'system');
+
+        return in_array($mode, ['light', 'dark', 'system'], true) ? $mode : 'system';
     }
 
     /**
-     * @return array{sans: string, display: string, google: bool}
+     * @return array{sans: string, display: string, google: bool, base_size: string, heading_weight: string, body_weight: string, line_height: string, letter_spacing: string}
      */
     public function fonts(): array
     {
@@ -59,6 +69,11 @@ final class Theme
             'sans' => (string) ($this->config['fonts']['sans'] ?? $presetFonts['sans'] ?? 'Source Sans 3'),
             'display' => (string) ($this->config['fonts']['display'] ?? $presetFonts['display'] ?? 'Cinzel'),
             'google' => (bool) ($this->config['fonts']['google'] ?? true),
+            'base_size' => (string) ($this->config['fonts']['base_size'] ?? '16px'),
+            'heading_weight' => (string) ($this->config['fonts']['heading_weight'] ?? '700'),
+            'body_weight' => (string) ($this->config['fonts']['body_weight'] ?? '400'),
+            'line_height' => (string) ($this->config['fonts']['line_height'] ?? '1.5'),
+            'letter_spacing' => (string) ($this->config['fonts']['letter_spacing'] ?? '0'),
         ];
     }
 
@@ -67,11 +82,73 @@ final class Theme
      */
     public function radius(): array
     {
+        $rounded = (bool) ($this->config['appearance']['rounded'] ?? true);
+
+        if (! $rounded) {
+            return [
+                'sm' => '0',
+                'md' => '0',
+                'lg' => '0',
+                'xl' => '0',
+            ];
+        }
+
         return [
             'sm' => (string) ($this->config['radius']['sm'] ?? '0.5rem'),
             'md' => (string) ($this->config['radius']['md'] ?? '0.75rem'),
             'lg' => (string) ($this->config['radius']['lg'] ?? '1rem'),
             'xl' => (string) ($this->config['radius']['xl'] ?? '1.5rem'),
+        ];
+    }
+
+    /**
+     * @return array{rounded: bool, shadows: bool, animations: bool, density: string, content_width: string, body_class: string}
+     */
+    public function appearance(): array
+    {
+        return [
+            'rounded' => (bool) ($this->config['appearance']['rounded'] ?? true),
+            'shadows' => (bool) ($this->config['appearance']['shadows'] ?? true),
+            'animations' => (bool) ($this->config['appearance']['animations'] ?? true),
+            'density' => (string) ($this->config['appearance']['density'] ?? 'comfortable'),
+            'content_width' => (string) ($this->config['appearance']['content_width'] ?? 'full'),
+            'body_class' => ThemeCssVariables::sanitizeClassList((string) ($this->config['appearance']['body_class'] ?? '')),
+        ];
+    }
+
+    /**
+     * @return array{logo: ?string, logo_dark: ?string, favicon: ?string}
+     */
+    public function assets(): array
+    {
+        return [
+            'logo' => $this->nullableString($this->config['assets']['logo'] ?? null),
+            'logo_dark' => $this->nullableString($this->config['assets']['logo_dark'] ?? null),
+            'favicon' => $this->nullableString($this->config['assets']['favicon'] ?? null),
+        ];
+    }
+
+    /**
+     * @return array{button_radius: string, card_radius: string, form_style: string}
+     */
+    public function components(): array
+    {
+        return [
+            'button_radius' => (string) ($this->config['components']['button_radius'] ?? 'md'),
+            'card_radius' => (string) ($this->config['components']['card_radius'] ?? 'lg'),
+            'form_style' => (string) ($this->config['components']['form_style'] ?? 'outline'),
+        ];
+    }
+
+    /**
+     * @return array{css: string, javascript: string, head: string}
+     */
+    public function custom(): array
+    {
+        return [
+            'css' => (string) ($this->config['custom']['css'] ?? ''),
+            'javascript' => (string) ($this->config['custom']['javascript'] ?? ''),
+            'head' => (string) ($this->config['custom']['head'] ?? ''),
         ];
     }
 
@@ -85,6 +162,10 @@ final class Theme
 
     public function color(string $role, int $stop = 600): string
     {
+        if ($role === 'link' && $this->linkColor !== null) {
+            return $this->linkColor;
+        }
+
         return $this->palettes[$role][$stop] ?? '#000000';
     }
 
@@ -137,46 +218,77 @@ final class Theme
      */
     public function cssVariables(): string
     {
-        $lines = [];
+        $variables = [];
         $fonts = $this->fonts();
         $radius = $this->radius();
+        $appearance = $this->appearance();
+        $components = $this->components();
 
-        $lines[] = '--boa-font-sans: '.self::fontStack($fonts['sans']).';';
-        $lines[] = '--boa-font-display: '.self::fontStack($fonts['display'], serif: true).';';
+        $variables['boa-font-sans'] = self::fontStack($fonts['sans']);
+        $variables['boa-font-display'] = self::fontStack($fonts['display'], serif: true);
+        $variables['boa-font-size'] = $fonts['base_size'];
+        $variables['boa-font-heading-weight'] = $fonts['heading_weight'];
+        $variables['boa-font-body-weight'] = $fonts['body_weight'];
+        $variables['boa-line-height'] = $fonts['line_height'];
+        $variables['boa-letter-spacing'] = $fonts['letter_spacing'];
 
         foreach ($radius as $key => $value) {
-            $lines[] = "--boa-radius-{$key}: {$value};";
+            $variables["boa-radius-{$key}"] = $value;
         }
+
+        $variables['boa-shadow'] = $appearance['shadows']
+            ? '0 10px 30px -12px rgb(0 0 0 / 0.25)'
+            : 'none';
+        $variables['boa-motion'] = $appearance['animations'] ? '200ms' : '0ms';
+        $variables['boa-density'] = $appearance['density'] === 'compact' ? '0.75rem' : '1rem';
+        $variables['boa-content-width'] = $appearance['content_width'] === 'boxed' ? '72rem' : '100%';
+
+        $variables['boa-button-radius'] = $this->resolveComponentRadius($components['button_radius']);
+        $variables['boa-card-radius'] = $this->resolveComponentRadius($components['card_radius']);
 
         foreach ($this->palettes as $role => $stops) {
             foreach ($stops as $stop => $hex) {
-                $lines[] = "--boa-{$role}-{$stop}: {$hex};";
+                $variables["boa-{$role}-{$stop}"] = $hex;
             }
-            $lines[] = "--boa-{$role}: {$stops[600]};";
-            $lines[] = "--boa-on-{$role}: {$this->onColor($role, 600)};";
+            $variables["boa-{$role}"] = $stops[600];
+            $variables["boa-on-{$role}"] = $this->onColor($role, 600);
+        }
+
+        if ($this->linkColor !== null) {
+            $variables['boa-link'] = $this->linkColor;
+        } else {
+            $variables['boa-link'] = $this->color('accent', 700);
         }
 
         // Logo gradient anchors (themeable mark)
-        $lines[] = '--boa-mark-stele-start: '.$this->color('brand', 800).';';
-        $lines[] = '--boa-mark-stele-mid: '.$this->color('brand', 600).';';
-        $lines[] = '--boa-mark-stele-end: '.$this->color('brand', 950).';';
-        $lines[] = '--boa-mark-sun-start: '.$this->color('accent', 100).';';
-        $lines[] = '--boa-mark-sun-mid: '.$this->color('accent', 400).';';
-        $lines[] = '--boa-mark-sun-end: '.$this->color('accent', 600).';';
-        $lines[] = '--boa-mark-linen-start: '.$this->color('brand', 50).';';
-        $lines[] = '--boa-mark-linen-end: '.$this->color('brand', 300).';';
-        $lines[] = '--boa-mark-ray: '.$this->color('accent', 200).';';
-        $lines[] = '--boa-mark-stroke: '.$this->color('accent', 400).';';
+        $variables['boa-mark-stele-start'] = $this->color('brand', 800);
+        $variables['boa-mark-stele-mid'] = $this->color('brand', 600);
+        $variables['boa-mark-stele-end'] = $this->color('brand', 950);
+        $variables['boa-mark-sun-start'] = $this->color('accent', 100);
+        $variables['boa-mark-sun-mid'] = $this->color('accent', 400);
+        $variables['boa-mark-sun-end'] = $this->color('accent', 600);
+        $variables['boa-mark-linen-start'] = $this->color('brand', 50);
+        $variables['boa-mark-linen-end'] = $this->color('brand', 300);
+        $variables['boa-mark-ray'] = $this->color('accent', 200);
+        $variables['boa-mark-stroke'] = $this->color('accent', 400);
 
-        $block = ":root {\n    ".implode("\n    ", $lines)."\n}";
+        $block = ThemeCssVariables::block(':root', $variables);
 
-        if ($this->darkMode()) {
+        if ($this->darkMode() || $this->colorMode() === 'system') {
             $dark = [
-                '--boa-canvas-50: '.$this->color('canvas', 950).';',
-                '--boa-canvas-100: '.$this->color('canvas', 900).';',
-                '--boa-brand-50: '.$this->color('brand', 950).';',
+                'boa-canvas-50' => $this->color('canvas', 950),
+                'boa-canvas-100' => $this->color('canvas', 900),
+                'boa-brand-50' => $this->color('brand', 950),
             ];
-            $block .= "\n\n.dark {\n    ".implode("\n    ", $dark)."\n}";
+
+            if ($this->colorMode() === 'system') {
+                $darkBlock = ThemeCssVariables::block(':root, .dark', $dark);
+                $block .= "\n\n@media (prefers-color-scheme: dark) {\n".$darkBlock."\n}";
+            } elseif ($this->colorMode() === 'dark') {
+                $block .= "\n\n".ThemeCssVariables::block(':root, .dark', $dark);
+            } else {
+                $block .= "\n\n".ThemeCssVariables::block('.dark', $dark);
+            }
         }
 
         return $block;
@@ -191,12 +303,13 @@ final class Theme
         }
 
         $parts = [];
+        $system = ['system-ui', 'Georgia', 'ui-sans-serif', 'ui-serif'];
 
-        if ($fonts['display'] !== '') {
+        if ($fonts['display'] !== '' && ! in_array($fonts['display'], $system, true)) {
             $parts[] = 'family='.str_replace(' ', '+', $fonts['display']).':wght@600;700';
         }
 
-        if ($fonts['sans'] !== '') {
+        if ($fonts['sans'] !== '' && ! in_array($fonts['sans'], $system, true)) {
             $parts[] = 'family='.str_replace(' ', '+', $fonts['sans']).':ital,wght@0,400;0,500;0,600;0,700;1,400';
         }
 
@@ -216,8 +329,12 @@ final class Theme
             'name' => $this->name(),
             'tagline' => $this->tagline(),
             'preset' => $this->preset(),
+            'color_mode' => $this->colorMode(),
             'fonts' => $this->fonts(),
             'radius' => $this->radius(),
+            'appearance' => $this->appearance(),
+            'assets' => $this->assets(),
+            'components' => $this->components(),
             'palettes' => $this->palettes,
             'accessibility' => $this->accessibilityReport(),
         ];
@@ -234,26 +351,69 @@ final class Theme
             'success' => '#059669',
         ];
 
+        $fallbackExtras = [
+            'warning' => '#d97706',
+            'info' => '#0284c7',
+        ];
+
         $overrides = array_filter(
             Arr::wrap($this->config['colors'] ?? []),
             static fn ($value) => is_string($value) && $value !== '',
         );
 
-        $seeds = array_merge($presetColors, $overrides);
+        $link = $overrides['link'] ?? null;
+        unset($overrides['link']);
+
+        if (is_string($link) && $link !== '') {
+            $this->linkColor = Color::fromHex($link)->toHex();
+        }
+
+        $seeds = array_merge($presetColors, $fallbackExtras, $overrides);
 
         foreach ($seeds as $role => $hex) {
-            $this->palettes[$role] = $this->generator->generate($hex);
+            if (! is_string($hex) || $hex === '') {
+                continue;
+            }
+
+            try {
+                $this->palettes[$role] = $this->generator->generate($hex);
+            } catch (\InvalidArgumentException) {
+                // Skip invalid seeds; keep package resilient.
+            }
         }
+    }
+
+    private function resolveComponentRadius(string $token): string
+    {
+        return match ($token) {
+            'none' => '0',
+            'sm' => $this->radius()['sm'],
+            'lg' => $this->radius()['lg'],
+            'xl' => $this->radius()['xl'],
+            'full' => '9999px',
+            default => $this->radius()['md'],
+        };
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     private static function fontStack(string $family, bool $serif = false): string
     {
         $fallback = $serif ? 'Georgia, ui-serif, serif' : 'ui-sans-serif, system-ui, sans-serif';
 
-        if ($family === '') {
+        if ($family === '' || $family === 'system-ui') {
             return $fallback;
         }
 
-        return "'{$family}', {$fallback}";
+        if ($family === 'Georgia') {
+            return 'Georgia, ui-serif, serif';
+        }
+
+        $safe = preg_replace("/['\"]/", '', $family) ?? $family;
+
+        return "'{$safe}', {$fallback}";
     }
 }

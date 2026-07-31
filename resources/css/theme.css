@@ -84,4 +84,30 @@
     --color-success-800: var(--boa-success-800);
     --color-success-900: var(--boa-success-900);
     --color-success-950: var(--boa-success-950);
+
+    --color-warning-50: var(--boa-warning-50);
+    --color-warning-100: var(--boa-warning-100);
+    --color-warning-200: var(--boa-warning-200);
+    --color-warning-300: var(--boa-warning-300);
+    --color-warning-400: var(--boa-warning-400);
+    --color-warning-500: var(--boa-warning-500);
+    --color-warning-600: var(--boa-warning-600);
+    --color-warning-700: var(--boa-warning-700);
+    --color-warning-800: var(--boa-warning-800);
+    --color-warning-900: var(--boa-warning-900);
+    --color-warning-950: var(--boa-warning-950);
+
+    --color-info-50: var(--boa-info-50);
+    --color-info-100: var(--boa-info-100);
+    --color-info-200: var(--boa-info-200);
+    --color-info-300: var(--boa-info-300);
+    --color-info-400: var(--boa-info-400);
+    --color-info-500: var(--boa-info-500);
+    --color-info-600: var(--boa-info-600);
+    --color-info-700: var(--boa-info-700);
+    --color-info-800: var(--boa-info-800);
+    --color-info-900: var(--boa-info-900);
+    --color-info-950: var(--boa-info-950);
+
+    --color-link: var(--boa-link);
 }

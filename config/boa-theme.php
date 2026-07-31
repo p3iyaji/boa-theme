@@ -37,7 +37,8 @@ return [
     | - brand: primary surfaces, nav, headings
     | - accent: CTAs, highlights, focus rings
     | - canvas: page backgrounds / stone family
-    | - danger / success: feedback
+    | - danger / success / warning / info: feedback
+    | - link: interactive text (single hex, not a full scale)
     |
     */
 
@@ -47,6 +48,9 @@ return [
         'canvas' => env('BOA_THEME_CANVAS'),
         'danger' => env('BOA_THEME_DANGER'),
         'success' => env('BOA_THEME_SUCCESS'),
+        'warning' => env('BOA_THEME_WARNING'),
+        'info' => env('BOA_THEME_INFO'),
+        'link' => env('BOA_THEME_LINK'),
     ],
 
     /*
@@ -63,6 +67,11 @@ return [
         'sans' => env('BOA_THEME_FONT_SANS', 'Source Sans 3'),
         'display' => env('BOA_THEME_FONT_DISPLAY', 'Cinzel'),
         'google' => env('BOA_THEME_GOOGLE_FONTS', true),
+        'base_size' => '16px',
+        'heading_weight' => '700',
+        'body_weight' => '400',
+        'line_height' => '1.5',
+        'letter_spacing' => '0',
     ],
 
     /*
@@ -83,11 +92,117 @@ return [
     | Dark mode
     |--------------------------------------------------------------------------
     |
-    | When true, :root.dark / .dark overrides flip brand surfaces for dark UI.
-    | Host apps should toggle the `dark` class on <html> or <body>.
+    | When true (or color_mode is dark), :root.dark / .dark overrides flip brand
+    | surfaces for dark UI. Prefer settings.color_mode when using the panel.
     |
     */
 
     'dark_mode' => env('BOA_THEME_DARK_MODE', false),
+
+    'color_mode' => env('BOA_THEME_COLOR_MODE', 'system'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Appearance toggles
+    |--------------------------------------------------------------------------
+    */
+
+    'appearance' => [
+        'rounded' => true,
+        'shadows' => true,
+        'animations' => true,
+        'density' => 'comfortable',
+        'content_width' => 'full',
+        'body_class' => '',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Brand assets (paths relative to storage disk, or absolute URLs)
+    |--------------------------------------------------------------------------
+    */
+
+    'assets' => [
+        'logo' => null,
+        'logo_dark' => null,
+        'favicon' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom code (disabled by default — enable only for trusted admins)
+    |--------------------------------------------------------------------------
+    */
+
+    'custom' => [
+        'css' => '',
+        'javascript' => '',
+        'head' => '',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Settings panel
+    |--------------------------------------------------------------------------
+    */
+
+    'settings' => [
+        'enabled' => env('BOA_THEME_SETTINGS_ENABLED', true),
+
+        'driver' => env('BOA_THEME_SETTINGS_DRIVER', 'database'),
+
+        'cache' => env('BOA_THEME_SETTINGS_CACHE', true),
+        'cache_key' => 'boa-theme.settings',
+        'cache_ttl' => 3600,
+
+        'route' => [
+            'prefix' => 'admin/theme',
+            'name' => 'boa-theme.settings.',
+            'middleware' => ['web', 'auth', 'boa-theme.authorize'],
+        ],
+
+        'authorization' => [
+            // Gate ability checked first when defined.
+            'gate' => 'manage-boa-theme-settings',
+            // Spatie-style permission name (optional).
+            'permission' => 'manage theme settings',
+            // Optional callable resolved from the container: fn ($user): bool
+            'callback' => null,
+            // Separate ability for custom CSS/JS/head.
+            'custom_code_gate' => 'manage-boa-theme-custom-code',
+        ],
+
+        'storage' => [
+            'disk' => env('BOA_THEME_ASSET_DISK', 'public'),
+            'directory' => 'theme-assets',
+        ],
+
+        'features' => [
+            'live_preview' => true,
+            'custom_css' => false,
+            'custom_javascript' => false,
+            'custom_head' => false,
+            'import_export' => true,
+            'uploads' => true,
+        ],
+
+        /*
+        | Fonts offered in the settings panel (controlled list).
+        */
+        'allowed_fonts' => [
+            'Source Sans 3',
+            'Cinzel',
+            'Inter',
+            'Roboto',
+            'Open Sans',
+            'Lato',
+            'Merriweather',
+            'Playfair Display',
+            'IBM Plex Sans',
+            'DM Sans',
+            'Georgia',
+            'system-ui',
+        ],
+    ],
 
 ];

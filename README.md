@@ -1,6 +1,6 @@
 # BOA Theme
 
-Customizable Laravel design system extracted from BOA PDF: brand mark, semantic color tokens, typography, and Tailwind CSS v4 utilities.
+Customizable Laravel design system — brand mark, semantic color tokens, typography, Tailwind CSS v4 utilities, and an admin **theme settings panel**.
 
 **Repository:** [github.com/p3iyaji/boa-theme](https://github.com/p3iyaji/boa-theme)
 
@@ -10,33 +10,160 @@ Customizable Laravel design system extracted from BOA PDF: brand mark, semantic 
 - Laravel 11, 12, or 13
 - Tailwind CSS v4 in the host application
 
-Current package version: **0.1.1** (adds Laravel 13 illuminate component support).
+Current package version: **0.2.0**
 
 ## Install
 
 ```bash
 composer require boa/theme
+php artisan boa-theme:settings:install
+php artisan migrate
+php artisan storage:link
 ```
 
-If Composer cannot find the package yet (not on Packagist), add a VCS repository:
+### Authorisation (required)
 
-```json
-{
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/p3iyaji/boa-theme.git"
-    }
-  ],
-  "require": {
-    "boa/theme": "^0.1"
-  }
-}
+The settings panel **denies access by default**. Define the gate (or a config callback):
+
+```php
+// AppServiceProvider::boot()
+use Illuminate\Support\Facades\Gate;
+
+Gate::define('manage-boa-theme-settings', function ($user) {
+    return $user->is_admin === true; // your rule
+});
 ```
 
-### Local development (path repo)
+Or in `config/boa-theme.php`:
 
-While developing the theme, symlink it from a Herd/Laravel app instead of installing from GitHub:
+```php
+'settings' => [
+    'authorization' => [
+        'callback' => fn ($user) => $user->can('manage theme settings'),
+    ],
+],
+```
+
+Panel URL (default): `/admin/theme`
+
+Navigation link (only renders when enabled + authorised):
+
+```blade
+<x-boa-theme::settings-link />
+```
+
+## Quick start (theme tokens)
+
+**1. Layout head** — CSS variables, fonts, optional favicon / custom code:
+
+```blade
+<x-boa-theme::styles />
+```
+
+**2. App CSS** (Tailwind v4):
+
+```css
+@import 'tailwindcss';
+@import '../../vendor/boa/theme/resources/css/theme.css';
+```
+
+**3. Brand mark / lockup:**
+
+```blade
+<x-boa-theme::mark size="lg" />
+<x-boa-theme::brand size="md" :show-tagline="true" />
+```
+
+## Settings panel features
+
+| Section | What you can change |
+|---------|---------------------|
+| General | Display label, colour mode, preset, rounded/shadows/animations, density, content width, body class |
+| Brand | Name, tagline, logo / dark logo / favicon uploads, brand·accent·canvas·link·success·warning·danger·info colours |
+| Typography | Controlled font list, base size, weights, line height, letter spacing |
+| Components | Button/card radius, form control style (CSS variables) |
+| Custom code | CSS / JS / head — **off by default**, separate authorisation |
+| Preview | Near-live representative UI |
+| Reset / import / export | Per-section reset, reset all, JSON import/export |
+
+### Omitted layout options
+
+Sidebar position, sticky header/footer, breadcrumbs, and similar shell options are **not** included. This package is a design-token / branding theme, not an application layout framework.
+
+## Configuration
+
+```bash
+php artisan vendor:publish --tag=boa-theme-config
+php artisan vendor:publish --tag=boa-theme-migrations
+```
+
+Publish tags: `boa-theme-config`, `boa-theme-migrations`, `boa-theme-views`, `boa-theme-css`, `boa-theme-translations`, or all via `boa-theme`.
+
+Important `config/boa-theme.php` keys:
+
+```php
+'settings' => [
+    'enabled' => true,
+    'driver' => env('BOA_THEME_SETTINGS_DRIVER', 'database'), // database|array
+    'cache' => true,
+    'route' => [
+        'prefix' => 'admin/theme',
+        'name' => 'boa-theme.settings.',
+        'middleware' => ['web', 'auth', 'boa-theme.authorize'],
+    ],
+    'storage' => [
+        'disk' => 'public',
+        'directory' => 'theme-assets',
+    ],
+    'features' => [
+        'live_preview' => true,
+        'custom_css' => false,
+        'custom_javascript' => false,
+        'custom_head' => false,
+        'import_export' => true,
+        'uploads' => true,
+    ],
+],
+```
+
+Existing config (`preset`, `colors`, `fonts`, `name`, …) remains the default source when no database settings exist.
+
+## Reading settings in code
+
+```php
+use Boa\Theme\Facades\BoaTheme;
+use Boa\Theme\Services\ThemeManager;
+
+BoaTheme::color('brand', 600);
+BoaTheme::cssVariables();
+
+app(ThemeManager::class)->get('brand.colors.accent');
+```
+
+Blade:
+
+```blade
+@themeSetting('brand.name')
+```
+
+## Artisan commands
+
+```bash
+php artisan boa-theme:settings:install
+php artisan boa-theme:settings:reset
+php artisan boa-theme:settings:export
+php artisan boa-theme:settings:clear-cache
+php artisan boa-theme:inspect
+```
+
+## Upgrade from 0.1.x
+
+1. Update the package to `^0.2`.
+2. Run `php artisan boa-theme:settings:install` and migrate.
+3. Register the authorisation gate or callback.
+4. No breaking changes to `Theme`, Blade components (`styles`, `brand`, `mark`), or existing config keys — settings overlay config when present.
+
+## Local path development
 
 ```json
 {
@@ -53,119 +180,17 @@ While developing the theme, symlink it from a Herd/Laravel app instead of instal
 }
 ```
 
-```bash
-composer update boa/theme
-```
-
-Edits in the theme repo appear immediately in the host app via the symlink.
-
-## Quick start
-
-**1. Layout head** — inject CSS variables + Google Fonts:
-
-```blade
-<x-boa-theme::styles />
-```
-
-**2. App CSS** (Tailwind v4) — bridge tokens to utilities:
-
-```css
-@import 'tailwindcss';
-@import '../../vendor/boa/theme/resources/css/theme.css';
-```
-
-**3. Brand mark / lockup:**
-
-```blade
-<x-boa-theme::mark size="lg" />
-<x-boa-theme::brand size="md" :show-tagline="true" />
-```
-
-## Customize
-
-Publish config:
+## Testing
 
 ```bash
-php artisan vendor:publish --tag=boa-theme-config
+composer install
+composer test
 ```
 
-```php
-// config/boa-theme.php
-'preset' => 'solar-stele', // solar-stele | midnight | coastal | ember | null
-'colors' => [
-    'brand' => '#0f766e',   // primary
-    'accent' => '#d97706',  // CTAs / highlights
-    'canvas' => '#78716c',  // page stone
-],
-'fonts' => [
-    'sans' => 'Source Sans 3',
-    'display' => 'Cinzel',
-],
-```
+## Security notes
 
-Or via `.env`:
-
-```
-BOA_THEME_PRESET=solar-stele
-BOA_THEME_BRAND=#0f766e
-BOA_THEME_ACCENT=#d97706
-BOA_THEME_NAME="My App"
-BOA_THEME_TAGLINE="Your library, illuminated"
-```
-
-## Semantic utilities
-
-After importing `theme.css`, use:
-
-| Token | Examples |
-|-------|----------|
-| brand | `bg-brand-950`, `text-brand-100`, `border-brand-800` |
-| accent | `bg-accent-500`, `text-accent-700`, `ring-accent-500` |
-| canvas | `bg-canvas-50`, `text-canvas-900` |
-| danger / success | `bg-danger-50`, `text-success-700` |
-| fonts | `font-sans`, `font-display` |
-| radius | `rounded-boa-lg` |
-
-Prefer semantic tokens over raw `teal-*` / `amber-*` so rebranding stays a config change.
-
-## Package layout
-
-Edit in this repository — not under `vendor/`:
-
-| What | Where |
-|------|--------|
-| Colors / fonts / presets | `config/boa-theme.php`, `src/Support/Presets.php` |
-| Palette logic | `src/Theme.php`, `src/Support/Color.php` |
-| Tailwind bridge | `resources/css/theme.css` |
-| Brand mark / lockup | `resources/views/components/*.blade.php` |
-| Styles component | `src/View/Components/Styles.php` |
-
-After config/PHP changes in the host app:
-
-```bash
-php artisan config:clear
-php artisan view:clear
-```
-
-CSS changes need a Vite rebuild in the host app (`npm run dev` / `npm run build`).
-
-## Accessibility
-
-```php
-use Boa\Theme\Facades\BoaTheme;
-
-BoaTheme::accessibilityReport();
-BoaTheme::contrast('brand', 50, 'brand', 950);
-```
-
-```bash
-php artisan boa-theme:inspect
-```
-
-## PHP API
-
-```php
-BoaTheme::color('brand', 600);
-BoaTheme::palette('accent');
-BoaTheme::cssVariables();
-```
+- Every settings route uses `auth` + package authorisation middleware.
+- Custom CSS/JS/head are disabled by default and require elevated access when enabled.
+- Uploads are validated, stored on a configured disk with generated filenames, and replaced files are removed only inside the package directory.
+- CSS variable output is sanitised; body classes are restricted to safe tokens.
+- Import only accepts known setting keys.
